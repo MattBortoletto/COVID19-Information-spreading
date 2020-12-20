@@ -1,1 +1,1 @@
-# Measles-Information-spreading
+# COVID19-Information-spreading
