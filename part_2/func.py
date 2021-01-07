@@ -115,18 +115,18 @@ def SIR(age_state, old_stateA, old_stateB, GA, betaA, gammaA):
     
     # Recovery phase                
     for node in range(len(old_stateA)):
-        
         if old_stateA[node] == 'IA':
             x = random.random()
             if x < gammaA:
                 new_stateA[node] = 'RA'
                 
-     # Information phase                
+    # Information phase                
     for node in range(len(old_stateA)):
-        if (old_stateA[node] == 'SA' and old_stateB[node] == 'IB'):
+        if (old_stateA[node] == 'SA' and old_stateB[node] == 'IBS'):
             new_stateA[node] = 'IA'
             
     return new_stateA
+
 
 def propagator(which_out, GA, GB, betaA, gammaA, betaB, gammaB, phi, p, t_max, prop_Y):
 
@@ -290,6 +290,7 @@ def mean_degree_YO(G, prop_Y):
     
     return kY_mean, kO_mean
 
+
 def SIR_AB(age_state, old_stateA, old_stateAA, old_stateB, GA, betaA, gammaA):
     
     new_stateA = old_stateA.copy()
@@ -325,11 +326,12 @@ def SIR_AB(age_state, old_stateA, old_stateAA, old_stateB, GA, betaA, gammaA):
                 
      # Information phase                
     for node in range(len(old_stateA)):
-        if (old_stateA[node] == 'SA' and (old_stateB[node] == 'IBS' or old_stateB[node] == 'IBA')):
+        if (old_stateA[node] == 'SA' and old_stateB[node] == 'IBS'):
             new_stateA[node] = 'IA'
             new_stateAA[node] = 'IAB'
             
     return new_stateA, new_stateAA
+
 
 def propagator_AB(which_out, GA, GB, betaA, gammaA, betaB, gammaB, phi, p, t_max, prop_Y):
 
