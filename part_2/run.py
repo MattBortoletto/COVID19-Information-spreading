@@ -5,7 +5,7 @@ if not os.path.exists("realizations"):
    
 os.chdir("realizations")
 
-n_realizations = 100      
+n_realizations = 20      
 for i in range(n_realizations): 
     print("-------- realization n°", i, "--------")
     N, GA, GB, betaA, gammaA, betaB, gammaB, phi, p, t_max, niter, prop_Y = init()

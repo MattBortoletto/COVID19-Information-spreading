@@ -83,7 +83,7 @@ def SIARV(age_state, old_stateA, old_stateB, GB, betaB, gammaB, phi, p):
             for i in l:                
                 if old_stateB[i] == 'IBS': 
                     count += 1
-            if count > phi:
+            if count >= phi:
                 x = random.random()                    
                 if x < p:
                     new_stateB[node] = 'VB'
@@ -285,8 +285,8 @@ def mean_degree_YO(G, prop_Y):
     for i in range(int(N*prop_Y),N): 
         kO += G.degree[i]
         
-    kY_mean = kY/N
-    kO_mean = kO/N
+    kY_mean = kY/int(N*prop_Y)
+    kO_mean = kO/int(N*(1-prop_Y))
     
     return kY_mean, kO_mean
 
@@ -390,8 +390,8 @@ def propagator_AB(which_out, GA, GB, betaA, gammaA, betaB, gammaB, phi, p, t_max
         old_stateAA = new_stateAA.copy()
         old_stateB = new_stateB.copy()
 
-        data = zip(new_stateA, new_stateB, age_state)
-        df = pd.DataFrame(data, columns = ["new_stateA", "new_stateB", "age_state"])
+        data = zip(new_stateA, new_stateB, new_stateAA, age_state)
+        df = pd.DataFrame(data, columns = ["new_stateA", "new_stateB", "new_stateAA", "age_state"])
         df_Y = df[df["age_state"] == "Y"]
         df_O = df[df["age_state"] == "O"]
             
@@ -406,8 +406,8 @@ def propagator_AB(which_out, GA, GB, betaA, gammaA, betaB, gammaB, phi, p, t_max
             RBY_frac.append(df_Y[df_Y["new_stateB"] == "RB"].count()[1]/(NB*prop_Y))
             VBY_frac.append(df_Y[df_Y["new_stateB"] == "VB"].count()[1]/(NB*prop_Y))
 
-            rhoAA_Y.append(new_stateAA.count('IAA')/(NA*prop_Y))
-            rhoAB_Y.append(new_stateAA.count('IAB')/(NA*prop_Y))
+            rhoAA_Y.append(df_Y[df_Y["new_stateAA"] == "IAA"].count()[1]/(NB*prop_Y))
+            rhoAB_Y.append(df_Y[df_Y["new_stateAA"] == "IAB"].count()[1]/(NB*prop_Y))
             
             SAO_frac.append(df_O[df_O["new_stateA"] == "SA"].count()[1]/(NA*(1-prop_Y)))
             IAO_frac.append(df_O[df_O["new_stateA"] == "IA"].count()[1]/(NA*(1-prop_Y)))
@@ -419,8 +419,8 @@ def propagator_AB(which_out, GA, GB, betaA, gammaA, betaB, gammaB, phi, p, t_max
             RBO_frac.append(df_O[df_O["new_stateB"] == "RB"].count()[1]/(NB*(1-prop_Y)))
             VBO_frac.append(df_O[df_O["new_stateB"] == "VB"].count()[1]/(NB*(1-prop_Y)))
 
-            rhoAA_O.append(new_stateAA.count('IAA')/(NA*(1-prop_Y)))
-            rhoAB_O.append(new_stateAA.count('IAB')/(NA*(1-prop_Y)))
+            rhoAA_O.append(df_O[df_O["new_stateAA"] == "IAA"].count()[1]/(NB*(1-prop_Y)))
+            rhoAB_O.append(df_O[df_O["new_stateAA"] == "IAB"].count()[1]/(NB*(1-prop_Y)))
 
         elif which_out == "f":
             SAY_frac = df_Y[df_Y["new_stateA"] == "SA"].count()[1]/(NA*prop_Y)
@@ -457,18 +457,20 @@ def propagator_AB(which_out, GA, GB, betaA, gammaA, betaB, gammaB, phi, p, t_max
 def init():
 
     N = 10000
-    pYY = 0.0016
-    pOO = 0.00089
-    pYO = 0.00038
+    pYY = 0.0016 
+    pOO = 0.00089 
+    pYO = 0.00038 
     prop_Y = 0.55
 
     # Information Network Parameters
     GA, frac_YYA, frac_OOA, frac_YOA = cmm(N,pYY,pOO,pYO,prop_Y)
     kY_mean_A, kO_mean_A = mean_degree_YO(GA, prop_Y)
+    k_mean_A = kY_mean_A*prop_Y + kO_mean_A*(1-prop_Y)
 
     # Disease Network Parameters
     GB, frac_YYB, frac_OOB, frac_YOB = cmm(N,pYY,pOO,pYO,prop_Y)
     kY_mean_B, kO_mean_B = mean_degree_YO(GB, prop_Y)
+    k_mean_B = kY_mean_B*prop_Y + kO_mean_B*(1-prop_Y)
 
     betaA = np.linspace(0, 0.2, 20)
     gammaA = 0.2
@@ -480,7 +482,7 @@ def init():
     R0YB = kY_mean_B * betaB / gammaB
     R0OB = kO_mean_B * betaB / gammaB
 
-    phi = 2
+    phi = 3
     p = 0.8
 
     t_max = 100
@@ -491,11 +493,13 @@ def init():
         f.write("N:"        + str(N)         + "\n")
         f.write("kAY mean:" + str(kY_mean_A) + "\n")
         f.write("kAO mean:" + str(kO_mean_A) + "\n")
+        f.write("kA mean:" + str(k_mean_A) + "\n")
         f.write("frac_YYA:"     + str(frac_YYA)      + "\n")
         f.write("frac_OOA:"     + str(frac_OOA)      + "\n")
         f.write("frac_YOA:"     + str(frac_YOA)      + "\n")
         f.write("kBY mean:" + str(kY_mean_B) + "\n")
         f.write("kBO mean:" + str(kO_mean_B) + "\n")
+        f.write("kB mean:" + str(k_mean_B) + "\n")
         f.write("frac_YYB:"     + str(frac_YYB)      + "\n")
         f.write("frac_OOB:"     + str(frac_OOB)      + "\n")
         f.write("frac_YOB:"     + str(frac_YOB)      + "\n") 
